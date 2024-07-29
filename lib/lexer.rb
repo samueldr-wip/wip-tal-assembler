@@ -255,6 +255,12 @@ class Lexer
   end
 
   class ByteOrShort < Token
+    def value()
+      {
+        length: (str.length) / 2,
+        value: str.to_i(base=16),
+      }
+    end
   end
   class Opcode < Token
   end
@@ -300,12 +306,29 @@ class Lexer
 
   # Runes
   class Literal < Token
+    def value()
+      {
+        length: (str.length - 1) / 2,
+        value: str.sub("#", "").to_i(base=16),
+      }
+    end
+    # FIXME: desugar down to Opcode + ByteOrShort in preprocess?
+    #        it probably should be...
   end
   class RawAscii < Token
+    def value()
+      str.sub(/^"/, "")
+    end
   end
   class PaddingAbsolute < Token
+    def value()
+      str.sub("|", "").to_i(base=16)
+    end
   end
   class PaddingRelative < Token
+    def value()
+      str.sub("$", "").to_i(base=16)
+    end
   end
 
   class Label < Token
@@ -354,31 +377,48 @@ class Lexer
         @str = [current_label.str, @str[1..-1]].join("/")
       end
     end
+
+    def ref_type()
+      :absolute
+    end
   end
 
   class ReferenceToken < LabelRef
-    # TODO: associate with its label in the next pass...
     def parse!()
       @original_str = @str
       @str = @str[1..-1]
       super()
     end
+
+    def ref_type()
+      raise "Unexpected call to #ref_type on generic ReferenceToken"
+    end
   end
   class JCIReference < ReferenceToken
+    def ref_type() :relative_16 end
   end
   class JMIReference < ReferenceToken
+    def ref_type() :relative_16 end
   end
+
   class LiteralAddressRelative < ReferenceToken
+    def ref_type() :relative_8 end
   end
   class LiteralAddressZeroPage < ReferenceToken
+    def ref_type() :zeropage end
   end
   class LiteralAddressAbsolute < ReferenceToken
+    def ref_type() :absolute end
   end
+
   class RawAddressRelative < ReferenceToken
+    def ref_type() :relative_8 end
   end
   class RawAddressZeroPage < ReferenceToken
+    def ref_type() :zeropage end
   end
   class RawAddressAbsolute < ReferenceToken
+    def ref_type() :absolute end
   end
 
   class Include < Token
