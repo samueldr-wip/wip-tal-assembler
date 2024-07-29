@@ -408,6 +408,7 @@ class Lexer
     %q{_} => RawAddressRelative,
     %q{-} => RawAddressZeroPage,
     %q{=} => RawAddressAbsolute,
+    %q{:} => RawAddressAbsolute, # Legacy?
     # Immediate Runes
     # ? handled in previous pass
     # ! handled in previous pass
