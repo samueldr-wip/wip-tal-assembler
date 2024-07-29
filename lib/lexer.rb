@@ -146,9 +146,16 @@ class Lexer
     def inspect()
       "#{self.class.name}<#{@str.inspect}>"
     end
+
+    def transparent?()
+      false
+    end
   end
 
   class TransparentToken < BasicToken
+    def transparent?()
+      true
+    end
   end
 
   # Kept to allow source-to-source manipulations
@@ -246,9 +253,11 @@ class Lexer
 
   class SquareBracketOpen < PairedOpeningSymbol
     def type() :square end
+    def transparent?() true end
   end
   class SquareBracketClose < PairedClosingSymbol
     def type() :square end
+    def transparent?() true end
   end
 
   class LambdaBracketOpen < PairedOpeningSymbol
