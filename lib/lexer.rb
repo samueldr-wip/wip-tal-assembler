@@ -81,7 +81,7 @@ class Lexer
           (RUNES[str[0]]).new(str, position)
       else
         case str
-        when /^[A-Z0-9]{3}2?k?r?/
+        when /^[A-Z]{3}2?k?r?/
           Opcode.new(str, position)
         when /^[a-f0-9]+$/
           ByteOrShort.new(str, position)
