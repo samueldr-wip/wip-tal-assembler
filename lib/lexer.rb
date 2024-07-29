@@ -251,6 +251,11 @@ class Lexer
 
   class ReferenceToken < Token
     # TODO: associate with its label in the next pass...
+    def parse!()
+      super()
+      @original_str = @str
+      @str = @str[1..-1]
+    end
   end
   class LiteralAddressRelative < ReferenceToken
   end
