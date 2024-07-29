@@ -129,15 +129,15 @@ class Lexer
     rune = RUNES[str[0]]
 
     unless rune.nil?
-        (RUNES[str[0]]).new(str, position)
+        (RUNES[str[0]]).new(str, self)
     else
       case str
       when /^[A-Z]{3}2?k?r?/
-        Opcode.new(str, position)
+        Opcode.new(str, self)
       when /^[a-f0-9]+$/
-        ByteOrShort.new(str, position)
+        ByteOrShort.new(str, self)
       else
-        LabelRef.new(str, position)
+        LabelRef.new(str, self)
       end
     end
   end
@@ -158,10 +158,13 @@ class Lexer
     def initialize(lex)
       @str = nil
       @lex = lex # Used to improve error messages
-      @path = lex.path
       @position = lex.position
       @position[:column] += 1
       parse!
+    end
+
+    def path()
+      @lex.path
     end
 
     def parse!()
@@ -253,9 +256,10 @@ class Lexer
   end
 
   class Token < BasicToken
-    def initialize(str, position)
+    def initialize(str, lex)
+      @lex = lex
       @str = str
-      @position = position
+      @position = lex.position
       @position[:column] -= str.length
       parse!
     end
