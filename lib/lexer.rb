@@ -12,6 +12,7 @@ class Lexer
   attr_reader :line
   attr_reader :column
   attr_reader :path
+  attr_reader :labels
 
   def self.from_file(path)
     new(File.open(path)).tap do |inst|
@@ -31,6 +32,7 @@ class Lexer
     @path = "<memory>"
     @src = src
     @tokens = []
+    @labels = {}
     @line = 1
     @column = 0
     @brackets_stack = []
@@ -72,10 +74,6 @@ class Lexer
         tokens << Comment.new(self)
       when SPACES_REGEX
         tokens << Space.new(self)
-      when "!"
-        tokens << JMIRune.new(self)
-      when "?"
-        tokens << JCIRune.new(self)
       when /[\[\]{}]/
         tokens << read_bracket()
       else
@@ -243,18 +241,6 @@ class Lexer
     end
   end
 
-  class JMIRune < BasicToken
-    def parse!()
-      @str = @lex.getc()
-    end
-  end
-
-  class JCIRune < BasicToken
-    def parse!()
-      @str = @lex.getc()
-    end
-  end
-
   class Token < BasicToken
     def initialize(str, lex)
       @lex = lex
@@ -271,17 +257,6 @@ class Lexer
   class ByteOrShort < Token
   end
   class Opcode < Token
-  end
-  class LabelRef < Token
-    def parse!()
-      @parent = nil
-      super()
-      @original_str = @str
-      if @str.match(%r{^/})
-        @parent = Label.current_label()
-        @str = [@parent.str[1..-1], @str[1..-1]].join("/")
-      end
-    end
   end
 
   # Paired symbols
@@ -353,16 +328,45 @@ class Lexer
       end
       # Fully qualified label to be matched
       @str = @str.sub(/^@/, "")
+
+      unless @lex.labels[@str].nil?
+        original = @lex.labels[@str]
+        error "Label #{@str.inspect} already defined (original at #{original.position})..."
+      end
+      @lex.labels[@str] = self
     end
   end
 
-  class ReferenceToken < Token
+  class LabelRef < Token
+    attr_reader :label
+
+    def parse!()
+      @parent = nil
+      super()
+      @original_str ||= @str
+      if @str.match(%r{^/})
+        @parent = Label.current_label()
+        @str = [@parent.str[1..-1], @str[1..-1]].join("/")
+      end
+
+      if @str.match(/^&/)
+        current_label = Label.current_label
+        @str = [current_label.str, @str[1..-1]].join("/")
+      end
+    end
+  end
+
+  class ReferenceToken < LabelRef
     # TODO: associate with its label in the next pass...
     def parse!()
-      super()
       @original_str = @str
       @str = @str[1..-1]
+      super()
     end
+  end
+  class JCIReference < ReferenceToken
+  end
+  class JMIReference < ReferenceToken
   end
   class LiteralAddressRelative < ReferenceToken
   end
@@ -410,8 +414,8 @@ class Lexer
     %q{=} => RawAddressAbsolute,
     %q{:} => RawAddressAbsolute, # Legacy?
     # Immediate Runes
-    # ? handled in previous pass
-    # ! handled in previous pass
+    %q{?} => JCIReference,
+    %q{!} => JMIReference,
 
     # Literal Hex Rune
     %q{#} => Literal,
