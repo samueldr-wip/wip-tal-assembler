@@ -50,7 +50,7 @@ OPCODES_BY_BYTE = {
   OPCODES_BY_BYTE[ num | 0x40 ] = OPCODES_BY_BYTE[num] + "r"
   OPCODES_BY_BYTE[ num | 0x60 ] = OPCODES_BY_BYTE[num] + "2r"
   OPCODES_BY_BYTE[ num | 0x80 ] = OPCODES_BY_BYTE[num] + "k"
-  OPCODES_BY_BYTE[ num | 0xa0 ] = OPCODES_BY_BYTE[num] + "2r"
+  OPCODES_BY_BYTE[ num | 0xa0 ] = OPCODES_BY_BYTE[num] + "2k"
   OPCODES_BY_BYTE[ num | 0xc0 ] = OPCODES_BY_BYTE[num] + "kr"
   OPCODES_BY_BYTE[ num | 0xe0 ] = OPCODES_BY_BYTE[num] + "2kr"
 end
