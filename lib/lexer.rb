@@ -88,10 +88,20 @@ class Lexer
   def preprocess!()
     raise "Parsing needed, or empty source file at pre-processing." unless tokens.length > 0
 
-    @tokens =
-      tokens.map do |token|
-        token.preprocess!()
-      end.flatten
+    loop do
+      need_restart = false
+
+      @tokens =
+        tokens.map do |token|
+          original_token = token
+          token = token.dup
+          result = token.preprocess!()
+          need_restart ||= result != token
+          result
+        end.flatten
+      break unless need_restart
+
+    end
   end
 
   def read_bracket()
