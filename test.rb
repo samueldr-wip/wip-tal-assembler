@@ -4,4 +4,6 @@ require_relative "lib/lexer"
 
 lexer = Lexer.from_file(ARGV.first)
 lexer.parse!
-pp lexer.tokens
+lexer.preprocess!
+
+pp (lexer.tokens.select { |token| !token.transparent?})

@@ -85,6 +85,15 @@ class Lexer
     end
   end
 
+  def preprocess!()
+    raise "Parsing needed, or empty source file at pre-processing." unless tokens.length > 0
+
+    @tokens =
+      tokens.map do |token|
+        token.preprocess!()
+      end.flatten
+  end
+
   def read_bracket()
     token = PAIRED_SYMBOLS[peek].new(self)
     if token.is_a?(PairedOpeningSymbol)
@@ -134,10 +143,12 @@ class Lexer
   class BasicToken
     attr_reader :position
     attr_reader :str
+    attr_reader :path
 
     def initialize(lex)
       @str = nil
       @lex = lex # Used to improve error messages
+      @path = lex.path
       @position = lex.position
       @position[:column] += 1
       parse!
@@ -168,6 +179,11 @@ class Lexer
 
     def transparent?()
       false
+    end
+
+    # By default, a no-op.
+    def preprocess!()
+      self
     end
   end
 
@@ -348,8 +364,20 @@ class Lexer
   end
 
   class Include < Token
+    def preprocess!()
+      # Replaces self!
+      path = str.sub(/^~/, "")
+      lex = Lexer.from_file(path)
+      lex.parse!
+      lex.preprocess!
+      lex.tokens
+      # TODO: determine if we add transparent tokens noting included origin to the tokens list.
+    end
   end
   class Macro < Token
+    def preprocess!()
+      raise "TODO: implement Macro#preprocess!"
+    end
   end
 
   RUNES = {
