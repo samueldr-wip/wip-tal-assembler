@@ -106,7 +106,7 @@ class Lexer
 
     def initialize(lex)
       @str = nil
-      @lex = lex
+      @lex = lex # Used to improve error messages
       @position = lex.position
       @position[:column] += 1
       parse!
@@ -205,6 +205,15 @@ class Lexer
   class Opcode < Token
   end
   class LabelRef < Token
+    def parse!()
+      @parent = nil
+      super()
+      @original_str = @str
+      if @str.match(%r{^/})
+        @parent = Label.current_label()
+        @str = [@parent.str[1..-1], @str[1..-1]].join("/")
+      end
+    end
   end
 
   # Runes
@@ -216,23 +225,27 @@ class Lexer
   end
   class PaddingRelative < Token
   end
-  class Label < Token
-    attr_reader :label
 
-    @@current_parent = nil
+  class Label < Token
+    @@current_label = nil
+
+    def self.current_label()
+      @@current_label
+    end
+
     def parse!()
+      @parent = nil
       super()
       @original_str = @str
       if @str.match(/^@/)
-        @@current_parent = self
-        @parent = nil
+        @@current_label = self
       else
-        error("Child label Rune used before a parent is defined.") if @@current_parent.nil?
-        @parent = @@current_parent
-        @str = [@@current_parent.str, @str[1..-1]].join("/")
+        error("Child label Rune used before a parent is defined.") if @@current_label.nil?
+        @parent = @@current_label
+        @str = [@@current_label.str, @str[1..-1]].join("/")
       end
       # Fully qualified label to be matched
-      @label = @str[1..-1]
+      @str = @str[1..-1]
     end
   end
 
