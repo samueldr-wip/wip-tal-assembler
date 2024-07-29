@@ -276,18 +276,28 @@ class Lexer
   end
 
   RUNES = {
-    %q{#} => Literal,
-    %q{"} => RawAscii,
+    # Padding Runes
     %q{|} => PaddingAbsolute,
     %q{$} => PaddingRelative,
+    # Label Runes
     %q{@} => Label,
     %q{&} => Label,
+    # Addressing Runes
     %q{,} => LiteralAddressRelative,
     %q{.} => LiteralAddressZeroPage,
     %q{;} => LiteralAddressAbsolute,
     %q{_} => RawAddressRelative,
     %q{-} => RawAddressZeroPage,
     %q{=} => RawAddressAbsolute,
+    # Immediate Runes
+    # ? handled in previous pass
+    # ! handled in previous pass
+
+    # Literal Hex Rune
+    %q{#} => Literal,
+    # Ascii Rune
+    %q{"} => RawAscii,
+    # Pre-processor Runes
     %q{~} => Include,
     %q{%} => Macro,
   }
