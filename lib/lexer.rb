@@ -10,14 +10,13 @@ class Lexer
   attr_reader :tokens
   attr_reader :line
   attr_reader :column
-  attr_reader :unhandled
 
   def initialize(src)
     @src = src
     @tokens = []
     @line = 1
     @column = 0
-    @unhandled = []
+    @brackets_stack = []
   end
 
   def getc()
@@ -59,13 +58,27 @@ class Lexer
       when "?"
         tokens << JCIRune.new(self)
       when /[\[\]{}]/
-        #raise "Oopsie woopsie"
-        getc() # XXX
+        tokens << read_bracket()
       else
         # At this point we should have either syntax errors, or free-standing tokens (no spaces, no comments).
-        read_token()
+        tokens << read_token()
       end
     end
+  end
+
+  def read_bracket()
+    token = PAIRED_SYMBOLS[peek].new(self)
+    if token.is_a?(PairedOpeningSymbol)
+      @brackets_stack << token
+    else
+      pair = @brackets_stack.pop
+      if pair.type != token.type
+        token.error("Unmatched bracket type")
+      end
+      pair.associate = token
+      token.associate = pair
+    end
+    token
   end
 
   def read_token()
@@ -76,20 +89,19 @@ class Lexer
     end
     str = str.join("")
     rune = RUNES[str[0]]
-    token =
-      unless rune.nil?
-          (RUNES[str[0]]).new(str, position)
+
+    unless rune.nil?
+        (RUNES[str[0]]).new(str, position)
+    else
+      case str
+      when /^[A-Z]{3}2?k?r?/
+        Opcode.new(str, position)
+      when /^[a-f0-9]+$/
+        ByteOrShort.new(str, position)
       else
-        case str
-        when /^[A-Z]{3}2?k?r?/
-          Opcode.new(str, position)
-        when /^[a-f0-9]+$/
-          ByteOrShort.new(str, position)
-        else
-          LabelRef.new(str, position)
-        end
+        LabelRef.new(str, position)
       end
-    @tokens << token
+    end
   end
 
   def inspect()
@@ -216,6 +228,43 @@ class Lexer
     end
   end
 
+  # Paired symbols
+  class PairedSymbol < BasicToken
+    attr_accessor :associate
+
+    def parse!()
+      @str = @lex.getc()
+    end
+
+    def type()
+    end
+  end
+  class PairedOpeningSymbol < PairedSymbol
+  end
+  class PairedClosingSymbol < PairedSymbol
+  end
+
+  class SquareBracketOpen < PairedOpeningSymbol
+    def type() :square end
+  end
+  class SquareBracketClose < PairedClosingSymbol
+    def type() :square end
+  end
+
+  class LambdaBracketOpen < PairedOpeningSymbol
+    def type() :lambda end
+  end
+  class LambdaBracketClose < PairedClosingSymbol
+    def type() :lambda end
+  end
+
+  PAIRED_SYMBOLS = {
+    %q'{' => LambdaBracketOpen,
+    %q'}' => LambdaBracketClose,
+    %q'[' => SquareBracketOpen,
+    %q']' => SquareBracketClose,
+  }
+
   # Runes
   class Literal < Token
   end
@@ -245,7 +294,7 @@ class Lexer
         @str = [@@current_label.str, @str[1..-1]].join("/")
       end
       # Fully qualified label to be matched
-      @str = @str[1..-1]
+      @str = @str.sub(/^@/, "")
     end
   end
 
