@@ -1,4 +1,5 @@
 require "json"
+require "stringio"
 
 class Lexer
   SPACES = [ " ", "\t", "\n" ]
@@ -10,14 +11,32 @@ class Lexer
   attr_reader :tokens
   attr_reader :line
   attr_reader :column
+  attr_reader :path
+
+  def self.from_file(path)
+    new(File.open(path)).tap do |inst|
+      inst.instance_exec do
+        @path = path
+      end
+    end
+  end
+
+  def self.from_source(str)
+    new(StringIO.new(str))
+  end
+
+  private
 
   def initialize(src)
+    @path = "<memory>"
     @src = src
     @tokens = []
     @line = 1
     @column = 0
     @brackets_stack = []
   end
+
+  public
 
   def getc()
     char = @src.getc()
@@ -130,14 +149,14 @@ class Lexer
 
     def warn(str)
       $stderr.puts [
-        "Warning: #{str} @ #{position}",
+        "Warning: #{str} in #{path}@#{position}",
         if @lex.nil? then nil else "(#{@lex.position})" end,
       ].compact.join(" ")
     end
 
     def error(str)
       $stderr.puts [
-        "Error: #{str} @ #{position}",
+        "Error: #{str} in #{path}@#{position}",
         if @lex.nil? then nil else "(#{@lex.position})" end,
       ].compact.join(" ")
       exit 2

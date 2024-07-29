@@ -2,6 +2,6 @@
 
 require_relative "lib/lexer"
 
-lexer = Lexer.new(File.open(ARGV.first))
+lexer = Lexer.from_file(ARGV.first)
 lexer.parse!
 pp lexer.tokens
