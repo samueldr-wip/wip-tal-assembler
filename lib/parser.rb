@@ -126,9 +126,15 @@ class Parser
 
   def emit!(io)
     output.each do |value|
-      # TODO: allow changing the output offet
-      io.seek(value.position - 0x100)
-      io.write(value.emit)
+      if value.length > 0
+        newpos = value.position - 0x100
+        if newpos < io.tell
+          $stderr.puts "Unexpected rewind from #{io.tell} to #{newpos}"
+          # XXX error out?
+        end
+        io.seek(newpos)
+        io.write(value.emit)
+      end
     end
   end
 
