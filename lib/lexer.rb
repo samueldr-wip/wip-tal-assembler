@@ -121,7 +121,7 @@ class Lexer
     str = []
     loop do
       str << getc()
-      break if peek.match(SPACES_REGEX)
+      break if peek.nil? || peek.match(SPACES_REGEX)
     end
     str = str.join("")
     rune = RUNES[str[0]]
