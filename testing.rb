@@ -108,12 +108,12 @@ RUNES_TEST_CASES = [
   # Immediate runes
   {
     name: "JMI",
-    source: "2106 @parent |100 !parent",
+    source: "|2106 @parent |100 !parent",
     expected: [OPCODES_BY_MNEMONIC["JMI"], 0x2003].pack("CS>")
   },
   {
     name: "JCI",
-    source: "2106 @parent |100 ?parent",
+    source: "|2106 @parent |100 ?parent",
     expected: [OPCODES_BY_MNEMONIC["JCI"], 0x2003].pack("CS>")
   },
   # Addressing runes
