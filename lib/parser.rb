@@ -124,7 +124,8 @@ class Parser
   def emit!(io)
     output.each do |value|
       # TODO: allow changing the output offet
-      io.pwrite(value.emit, value.position - 0x100)
+      io.seek(value.position - 0x100)
+      io.write(value.emit)
     end
   end
 
