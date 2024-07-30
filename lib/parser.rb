@@ -89,15 +89,15 @@ class Parser
         else
           add_op("LIT2")
         end
-        add_output(Output.new(token.value[:value], length: token.value[:length], position: @position))
+        add_output(Output.new(token.value[:value], length: token.value[:length], position: @position, token: token))
       when Lexer::ByteOrShort
-        add_output(Output.new(token.value[:value], length: token.value[:length], position: @position))
+        add_output(Output.new(token.value[:value], length: token.value[:length], position: @position, token: token))
       when Lexer::RawAscii
-        add_output(Output.new(token.value, length: token.value.length, position: @position))
+        add_output(Output.new(token.value, length: token.value.length, position: @position, token: token))
       when Lexer::Opcode
         add_op(token.str)
       when Lexer::LabelRef
-        output << Placeholder.new(token.str, token.ref_type, position: @position)
+        output << Placeholder.new(token.str, token.ref_type, position: @position, token: token)
       else
         raise "Unexpected token #{token.class.name.inspect}"
       end
@@ -113,12 +113,19 @@ class Parser
   end
 
   def add_op(name)
-    add_output(Output.new(OPCODES_BY_MNEMONIC[name], position: @position))
+    add_output(Output.new(OPCODES_BY_MNEMONIC[name], position: @position, token: {opcode: name}))
   end
 
   def add_output(value)
     output << value
     @position += value.length
+  end
+
+  def emit!(io)
+    output.each do |value|
+      # TODO: allow changing the output offet
+      io.pwrite(value.emit, value.position - 0x100)
+    end
   end
 
   class Output
@@ -128,11 +135,33 @@ class Parser
     attr_reader :length
     # Position (in RAM)
     attr_reader :position
+    # Token causing this output
+    attr_reader :token
 
-    def initialize(value, length: 1, position:)
+    def initialize(value, length: 1, position:, token:)
       @value = value
       @length = length
       @position = position
+      @token = token
+    end
+
+    def emit()
+      if value.nil?
+        raise "Value unexpectedly nil for #{token.inspect}..."
+      elsif value.is_a? String
+        value
+      else
+        pattern = 
+          case length
+          when 1
+            "C"
+          when 2
+            "S>"
+          else
+            raise "Unexpected length #{length} for value #{value.inspect}"
+          end
+        [value].pack(pattern)
+      end
     end
   end
 
@@ -140,14 +169,14 @@ class Parser
     attr_reader :label
     attr_reader :type
 
-    def initialize(label, type, position:)
+    def initialize(label, type, position:, token:)
       @length =
         if [:relative_8, :zeropage].include?(type)
           1
         else
           2
         end
-      super(nil, length: @length, position: position)
+      super(nil, length: @length, position: position, token:)
       @label = label
       @type = type
     end
