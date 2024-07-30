@@ -394,26 +394,28 @@ class Lexer
       raise "Unexpected call to #ref_type on generic ReferenceToken"
     end
 
-    def literal?() false end
+    def instruction() nil end
   end
   class JCIReference < ReferenceToken
     def ref_type() :relative_16 end
+    def instruction() "JCI" end
   end
   class JMIReference < ReferenceToken
     def ref_type() :relative_16 end
+    def instruction() "JMI" end
   end
 
   class LiteralAddressRelative < ReferenceToken
     def ref_type() :relative_8 end
-    def literal?() true end
+    def instruction() "LIT" end
   end
   class LiteralAddressZeroPage < ReferenceToken
     def ref_type() :zeropage end
-    def literal?() true end
+    def instruction() "LIT" end
   end
   class LiteralAddressAbsolute < ReferenceToken
     def ref_type() :absolute end
-    def literal?() true end
+    def instruction() "LIT2" end
   end
 
   class RawAddressRelative < ReferenceToken

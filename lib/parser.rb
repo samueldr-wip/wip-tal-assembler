@@ -97,12 +97,8 @@ class Parser
       when Lexer::Opcode
         add_op(token.str)
       when Lexer::LabelRef
-        if token.literal?
-          if token.ref_type == :absolute
-            add_op("LIT2")
-          else
-            add_op("LIT")
-          end
+        if token.instruction
+          add_op(token.instruction)
         end
         output << Placeholder.new(token.str, token.ref_type, position: @position, token: token)
       else
