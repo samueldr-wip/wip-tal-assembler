@@ -192,7 +192,7 @@ class Parser
     def set_ref(address)
       @value =
         if [:relative_8, :relative_16].include?(type)
-          address - position
+          address - position - 2
         else
           address
         end
