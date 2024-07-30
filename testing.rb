@@ -53,6 +53,12 @@ SIMPLE_OUTPUT_TEST_CASES = [
     source: "BRK ( This is a comment ) 1234",
     expected: [0, 0x1234].pack("CS>")
   },
+  {
+    name: "Implicit jump to label",
+    source: "|0100 some-fn |0106 @some-fn JMP2r",
+    #                                      rel +3
+    expected: [OPCODES_BY_MNEMONIC["JSI"], 0x0003, 0x00, 0x00, 0x00, OPCODES_BY_MNEMONIC["JMP2r"]].pack("CS>C*")
+  },
 ]
 
 RUNES_TEST_CASES = [
