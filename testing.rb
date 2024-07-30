@@ -59,6 +59,11 @@ SIMPLE_OUTPUT_TEST_CASES = [
     #                                      rel +3
     expected: [OPCODES_BY_MNEMONIC["JSI"], 0x0003, 0x00, 0x00, 0x00, OPCODES_BY_MNEMONIC["JMP2r"]].pack("CS>C*")
   },
+  {
+    name: "Implicit jump to label (bis)",
+    source: "|0100 some-fn @some-fn JMP2r",
+    expected: [OPCODES_BY_MNEMONIC["JSI"], 0x0000, OPCODES_BY_MNEMONIC["JMP2r"]].pack("CS>C")
+  },
 ]
 
 RUNES_TEST_CASES = [
