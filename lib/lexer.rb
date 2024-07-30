@@ -379,7 +379,11 @@ class Lexer
     end
 
     def ref_type()
-      :absolute
+      :relative_16
+    end
+
+    def instruction()
+      "JSI"
     end
   end
 
@@ -390,11 +394,10 @@ class Lexer
       super()
     end
 
+    def instruction() nil end
     def ref_type()
       raise "Unexpected call to #ref_type on generic ReferenceToken"
     end
-
-    def instruction() nil end
   end
   class JCIReference < ReferenceToken
     def ref_type() :relative_16 end
