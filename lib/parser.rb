@@ -100,7 +100,7 @@ class Parser
         if token.instruction
           add_op(token.instruction)
         end
-        output << Placeholder.new(token.str, token.ref_type, position: @position, token: token)
+        add_output(Placeholder.new(token.str, token.ref_type, position: @position, token: token))
       else
         raise "Unexpected token #{token.class.name.inspect}"
       end
