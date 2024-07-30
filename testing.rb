@@ -175,6 +175,16 @@ def run_tests(suite, tests)
       puts "      |      Got: #{output.bytes}"
     end
 
+    if test[:debug]
+      lexer = Lexer.from_source(test[:source])
+      lexer.parse!
+      lexer.preprocess!
+      pp lexer.tokens
+      parser = Parser.new(lexer.tokens)
+      parser.parse!
+      pp parser.output
+    end
+
     {
       result: result,
       test: test,
