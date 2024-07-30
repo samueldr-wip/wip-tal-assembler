@@ -118,32 +118,32 @@ RUNES_TEST_CASES = [
   },
   # Addressing runes
   {
-    name: "Literal relative.",
+    name: "Literal relative rune.",
     source: "|100 ,parent |110 @parent",
     expected: [OPCODES_BY_MNEMONIC["LIT"], 0x0d].pack("CC")
   },
   {
-    name: "Raw relative.",
+    name: "Raw relative rune.",
     source: "|100 _parent |110 @parent",
     expected: [0x0e].pack("C")
   },
   {
-    name: "Literal zero-page.",
+    name: "Literal zero-page rune.",
     source: " |04 @parent |100 .parent",
     expected: [OPCODES_BY_MNEMONIC["LIT"], 0x04].pack("CC")
   },
   {
-    name: "Raw zero-page.",
+    name: "Raw zero-page rune.",
     source: " |04 @parent |100 -parent",
     expected: [0x04].pack("C")
   },
   {
-    name: "Literal absolute.",
-    source: " |1234 @parent |100 .parent",
+    name: "Literal absolute rune.",
+    source: " |1234 @parent |100 ;parent",
     expected: [OPCODES_BY_MNEMONIC["LIT2"], 0x1234].pack("CS>")
   },
   {
-    name: "Raw absolute.",
+    name: "Raw absolute rune.",
     source: " |1234 @parent |100 =parent",
     expected: [0x1234].pack("S>")
   },
@@ -159,6 +159,7 @@ def run_tests(suite, tests)
     result = test[:expected].bytes == output.bytes
     unless result
       puts "FAILED: #{test[:name]}"
+      puts "      |   Source: #{test[:source].inspect}"
       puts "      | Expected: #{test[:expected].bytes}"
       puts "      |      Got: #{output.bytes}"
     end
