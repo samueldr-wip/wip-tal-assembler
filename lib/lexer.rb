@@ -439,7 +439,6 @@ class Lexer
       lex.parse!
       lex.preprocess!
       lex.tokens
-      # TODO: determine if we add transparent tokens noting included origin to the tokens list.
     end
   end
   class Macro < Token
