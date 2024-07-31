@@ -198,6 +198,9 @@ class Parser
         else
           address
         end
+      if type == :relative_8 && value > 0xff
+        token.error "Relative reference too far: #{label.inspect}"
+      end
     end
   end
 end
