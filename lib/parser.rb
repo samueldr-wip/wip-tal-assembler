@@ -67,7 +67,6 @@ class Parser
   def initialize(tokens)
     @tokens = tokens.select { |token| !token.transparent? }
     @output = []
-    # Start at 0x0100, where ROM starts (XXX: verify it's the correct behaviour)
     @position = 0x0100
     @labels = {}
   end
