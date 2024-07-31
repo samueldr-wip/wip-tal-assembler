@@ -161,6 +161,9 @@ RUNES_TEST_CASES = [
   # NOTE: pre-processor runes are tested in pre-processor tests
 ]
 
+# TODO: test error cases too
+# |100 ,testing |300 @testing #1234   →   `Relative reference too far`
+
 
 def run_tests(suite, tests)
   puts ":: #{suite}"
