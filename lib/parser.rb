@@ -130,7 +130,7 @@ class Parser
         newpos = value.position - 0x100
         if newpos < io.tell
           $stderr.puts "Unexpected rewind from #{io.tell} to #{newpos}"
-          # XXX error out?
+          exit 1
         end
         io.seek(newpos)
         io.write(value.emit)
