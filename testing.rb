@@ -172,6 +172,18 @@ BRACKETS_TEST_CASES = [
       OPCODES_BY_MNEMONIC["POP2"],
     ].pack("C*")
   },
+  {
+    name: "Curly with `!`.",
+    source: "POP2 !{ POP2 POP2 } POP2",
+    expected: [
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["JMI"],
+      0x0002,
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+    ].pack("CCS>C*")
+  },
 ]
 
 # TODO: test error cases too
