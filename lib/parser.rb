@@ -82,7 +82,7 @@ class Parser
         @position = token.value
       when Lexer::Label
         # The labels were checked for uniqueness when lexing...
-        labels[token.str] = @position
+        labels[token.label] = @position
       when Lexer::Literal
         if token.value[:length] == 1
           add_op("LIT")
@@ -100,7 +100,7 @@ class Parser
         if token.instruction
           add_op(token.instruction)
         end
-        add_output(Placeholder.new(token.str, token.ref_type, position: @position, token: token))
+        add_output(Placeholder.new(token.label, token.ref_type, position: @position, token: token))
       else
         raise "Unexpected token #{token.class.name.inspect}"
       end

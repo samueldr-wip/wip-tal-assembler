@@ -266,45 +266,6 @@ class Lexer
   class Opcode < Token
   end
 
-  # Paired symbols
-  class PairedSymbol < BasicToken
-    attr_accessor :associate
-
-    def parse!()
-      @str = @lex.getc()
-    end
-
-    def type()
-    end
-  end
-  class PairedOpeningSymbol < PairedSymbol
-  end
-  class PairedClosingSymbol < PairedSymbol
-  end
-
-  class SquareBracketOpen < PairedOpeningSymbol
-    def type() :square end
-    def transparent?() true end
-  end
-  class SquareBracketClose < PairedClosingSymbol
-    def type() :square end
-    def transparent?() true end
-  end
-
-  class LambdaBracketOpen < PairedOpeningSymbol
-    def type() :lambda end
-  end
-  class LambdaBracketClose < PairedClosingSymbol
-    def type() :lambda end
-  end
-
-  PAIRED_SYMBOLS = {
-    %q'{' => LambdaBracketOpen,
-    %q'}' => LambdaBracketClose,
-    %q'[' => SquareBracketOpen,
-    %q']' => SquareBracketClose,
-  }
-
   # Runes
   class Literal < Token
     def value()
@@ -359,6 +320,10 @@ class Lexer
       end
       @lex.labels[@str] = self
     end
+
+    def label()
+      str
+    end
   end
 
   class LabelRef < Token
@@ -385,6 +350,10 @@ class Lexer
 
     def instruction()
       "JSI"
+    end
+
+    def label()
+      str
     end
   end
 
@@ -447,6 +416,67 @@ class Lexer
       raise "TODO: implement Macro#preprocess!"
     end
   end
+
+  # Paired symbols
+  module PairedSymbol
+    attr_accessor :associate
+
+    def initialize(lex)
+      @str = nil
+      @lex = lex # Used to improve error messages
+      @position = lex.position
+      @position[:column] += 1
+      parse!
+    end
+
+    def parse!()
+      @str = @lex.getc()
+    end
+
+    def type()
+      raise "#type needs to be implemented for #{self.class.name}"
+    end
+  end
+  module PairedOpeningSymbol
+    include PairedSymbol
+  end
+  module PairedClosingSymbol
+    include PairedSymbol
+  end
+
+  class SquareBracketOpen < TransparentToken
+    include PairedOpeningSymbol
+    def type() :square end
+    def transparent?() true end
+  end
+  class SquareBracketClose < TransparentToken
+    include PairedClosingSymbol
+    def type() :square end
+    def transparent?() true end
+  end
+
+  # NOTE: overloaded for macro usage too.
+  class LambdaBracketOpen < LabelRef
+    include PairedOpeningSymbol
+    def type() :lambda end
+    def label()
+      associate.label()
+    end
+  end
+  class LambdaBracketClose < Label
+    include PairedClosingSymbol
+    def type() :lambda end
+    def label()
+      "{PRG/byte/#{position}}"
+    end
+  end
+
+  PAIRED_SYMBOLS = {
+    %q'{' => LambdaBracketOpen,
+    %q'}' => LambdaBracketClose,
+    %q'[' => SquareBracketOpen,
+    %q']' => SquareBracketClose,
+  }
 
   RUNES = {
     # Padding Runes
