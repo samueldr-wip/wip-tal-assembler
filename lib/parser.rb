@@ -1,4 +1,5 @@
 require_relative "lexer"
+require_relative "error"
 
 OPCODES_BY_BYTE = {
   0x00 => "BRK",
@@ -191,6 +192,9 @@ class Parser
     end
 
     def set_ref(address)
+      if address.nil?
+        raise AssemblerException.new("Reference not found for label #{self.token.label.inspect}")
+      end
       @value =
         if [:relative_8, :relative_16].include?(type)
           address - position - 2
