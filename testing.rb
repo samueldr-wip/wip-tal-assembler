@@ -173,6 +173,18 @@ BRACKETS_TEST_CASES = [
     ].pack("C*")
   },
   {
+    name: "Unadorned curly (JSI).",
+    source: "POP2 { POP2 POP2 } POP2",
+    expected: [
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["JSI"],
+      0x0002,
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+    ].pack("CCS>C*")
+  },
+  {
     name: "Curly with `!`.",
     source: "POP2 !{ POP2 POP2 } POP2",
     expected: [
@@ -182,6 +194,30 @@ BRACKETS_TEST_CASES = [
       OPCODES_BY_MNEMONIC["POP2"],
       OPCODES_BY_MNEMONIC["POP2"],
       OPCODES_BY_MNEMONIC["POP2"],
+    ].pack("CCS>C*")
+  },
+  {
+    name: "Curly with `?`.",
+    source: "POP2 ?{ POP2 POP2 } POP2",
+    expected: [
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["JCI"],
+      0x0002,
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+    ].pack("CCS>C*")
+  },
+  {
+    name: "Curly with `;`.",
+    source: "POP2 ;{ POP2 POP2 } POP2",
+    expected: [
+      OPCODES_BY_MNEMONIC["POP2"],  # |0100
+      OPCODES_BY_MNEMONIC["LIT2"],  # |0101
+      0x0106,                       # |0102 absolute address...
+      OPCODES_BY_MNEMONIC["POP2"],  # |0104
+      OPCODES_BY_MNEMONIC["POP2"],  # |0105
+      OPCODES_BY_MNEMONIC["POP2"],  # |0106 ...of this instruction
     ].pack("CCS>C*")
   },
 ]
