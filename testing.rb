@@ -200,7 +200,7 @@ def run_tests(suite, tests)
         puts "      |      Got: #{output.bytes}"
       else
         msg = [
-          e.to_s(),
+          e.message(),
           e.backtrace().join("\n"),
         ].join("\n").split("\n").map{|l| "      |   #{l}" }.join("\n")
         puts "      |Exception: \n#{msg}"
