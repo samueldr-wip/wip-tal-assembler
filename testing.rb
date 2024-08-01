@@ -169,16 +169,32 @@ def run_tests(suite, tests)
   puts ":: #{suite}"
 
   results = tests.map do |test|
-    output = just_build(test[:source])
-    result = test[:expected].bytes == output.bytes
+    exception = nil
+    result = false
+
+    begin
+      output = just_build(test[:source])
+      result = test[:expected].bytes == output.bytes
+    rescue Exception => e
+      exception = e
+    end
+
     unless result
       puts "FAILED: #{test[:name]}"
       puts "      |   Source: #{test[:source].inspect}"
       puts "      | Expected: #{test[:expected].bytes}"
-      puts "      |      Got: #{output.bytes}"
+      if exception.nil?
+        puts "      |      Got: #{output.bytes}"
+      else
+        msg = [
+          e.to_s(),
+          e.backtrace().join("\n"),
+        ].join("\n").split("\n").map{|l| "      |   #{l}" }.join("\n")
+        puts "      |Exception: \n#{msg}"
+      end
     end
 
-    if test[:debug]
+    if test[:debug] && !exception
       lexer = Lexer.from_source(test[:source])
       lexer.parse!
       lexer.preprocess!
