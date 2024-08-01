@@ -161,6 +161,19 @@ RUNES_TEST_CASES = [
   # NOTE: pre-processor runes are tested in pre-processor tests
 ]
 
+BRACKETS_TEST_CASES = [
+  {
+    name: "Square brackets.",
+    source: "POP2 [ POP2 POP2 ] POP2",
+    expected: [
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+      OPCODES_BY_MNEMONIC["POP2"],
+    ].pack("C*")
+  },
+]
+
 # TODO: test error cases too
 # |100 ,testing |300 @testing #1234   →   `Relative reference too far`
 
@@ -218,3 +231,4 @@ end
 run_tests("opcodes", OPCODE_TEST_CASES)
 run_tests("simple", SIMPLE_OUTPUT_TEST_CASES)
 run_tests("runes", RUNES_TEST_CASES)
+run_tests("brackets", BRACKETS_TEST_CASES)
