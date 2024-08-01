@@ -1,5 +1,6 @@
 require "json"
 require "stringio"
+require_relative "error"
 
 class Lexer
   SPACES = [ " ", "\t", "\n" ]
