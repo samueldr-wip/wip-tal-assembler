@@ -53,6 +53,16 @@ class Lexer
     char
   end
 
+  def ungetc(char)
+    @src.ungetc(char)
+    if char == "\n"
+      @line -= 1
+      raise "TODO: implement ungetc column tracking for newlines..."
+    else
+      @column -= 1
+    end
+  end
+
   def peek()
      char = @src.getc()
      return nil if char.nil?
@@ -154,16 +164,16 @@ class Lexer
     attr_reader :str
     attr_reader :path
 
-    def initialize(lex)
+    def initialize(lexer)
       @str = nil
-      @lex = lex # Used to improve error messages
-      @position = lex.position
+      @lexer = lexer # Used to improve error messages
+      @position = lexer.position
       @position[:column] += 1
       parse!
     end
 
     def path()
-      @lex.path
+      @lexer.path
     end
 
     def parse!()
@@ -173,14 +183,14 @@ class Lexer
     def warn(str)
       $stderr.puts [
         "Warning: #{str} in #{path}@#{position}",
-        if @lex.nil? then nil else "(#{@lex.position})" end,
+        if @lexer.nil? then nil else "(#{@lexer.position})" end,
       ].compact.join(" ")
     end
 
     def error(str)
       $stderr.puts [
         "Error: #{str} in #{path}@#{position}",
-        if @lex.nil? then nil else "(#{@lex.position})" end,
+        if @lexer.nil? then nil else "(#{@lexer.position})" end,
       ].compact.join(" ")
       exit 2
     end
@@ -210,13 +220,13 @@ class Lexer
     def parse!()
       str = []
       # Weird logic here to check leading spaces
-      str << @lex.getc()
+      str << @lexer.getc()
       count = 1
-      char = @lex.getc()
+      char = @lexer.getc()
       str << char
       warn "Comments should start with a whitespace. Found #{char.inspect}" unless char.match(SPACES_REGEX)
       loop do
-        char = @lex.getc()
+        char = @lexer.getc()
         if char == "("
           count += 1
           if count > 1 then
@@ -238,15 +248,15 @@ class Lexer
   # Kept to allow source-to-source manipulations
   class Space < TransparentToken
     def parse!()
-      @str = @lex.getc()
+      @str = @lexer.getc()
     end
   end
 
   class Token < BasicToken
-    def initialize(str, lex)
-      @lex = lex
+    def initialize(str, lexer)
+      @lexer = lexer
       @str = str
-      @position = lex.position
+      @position = lexer.position
       @position[:column] -= str.length
       parse!
     end
@@ -314,11 +324,11 @@ class Lexer
       # Fully qualified label to be matched
       @str = @str.sub(/^@/, "")
 
-      unless @lex.labels[@str].nil?
-        original = @lex.labels[@str]
+      unless @lexer.labels[@str].nil?
+        original = @lexer.labels[@str]
         error "Label #{@str.inspect} already defined (original at #{original.position})..."
       end
-      @lex.labels[@str] = self
+      @lexer.labels[@str] = self
     end
 
     def label()
@@ -361,12 +371,23 @@ class Lexer
     def parse!()
       @original_str = @str
       @str = @str[1..-1]
+      if @str == "{"
+        @lexer.ungetc("{")
+        @bracket = @lexer.read_bracket()
+      end
       super()
     end
 
     def instruction() nil end
     def ref_type()
       raise "Unexpected call to #ref_type on generic ReferenceToken"
+    end
+
+    def preprocess!()
+      if @str == "{"
+        @str = @bracket.label()
+      end
+      super()
     end
   end
   class JCIReference < ReferenceToken
@@ -405,10 +426,10 @@ class Lexer
     def preprocess!()
       # Replaces self!
       path = str.sub(/^~/, "")
-      lex = Lexer.from_file(path)
-      lex.parse!
-      lex.preprocess!
-      lex.tokens
+      lexer = Lexer.from_file(path)
+      lexer.parse!
+      lexer.preprocess!
+      lexer.tokens
     end
   end
   class Macro < Token
@@ -421,16 +442,16 @@ class Lexer
   module PairedSymbol
     attr_accessor :associate
 
-    def initialize(lex)
+    def initialize(lexer)
       @str = nil
-      @lex = lex # Used to improve error messages
-      @position = lex.position
+      @lexer = lexer # Used to improve error messages
+      @position = lexer.position
       @position[:column] += 1
       parse!
     end
 
     def parse!()
-      @str = @lex.getc()
+      @str = @lexer.getc()
     end
 
     def type()
