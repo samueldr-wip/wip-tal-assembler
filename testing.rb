@@ -222,6 +222,25 @@ BRACKETS_TEST_CASES = [
   },
 ]
 
+MACRO_TEST_CASES = [
+  {
+    name: "Macro with curlies.",
+    source: "%macro { POP2k } macro",
+    expected: [
+      OPCODES_BY_MNEMONIC["POP2k"],
+    ].pack("C"),
+  },
+  {
+    name: "Macro with curlies, with a lambda.",
+    source: "%macro { { POP2k } } macro",
+    expected: [
+      OPCODES_BY_MNEMONIC["JSI"],
+      0x0001,
+      OPCODES_BY_MNEMONIC["POP2k"],
+    ].pack("CS>C"),
+  },
+]
+
 # TODO: test error cases too
 # |100 ,testing |300 @testing #1234   →   `Relative reference too far`
 
@@ -280,3 +299,4 @@ run_tests("opcodes", OPCODE_TEST_CASES)
 run_tests("simple", SIMPLE_OUTPUT_TEST_CASES)
 run_tests("runes", RUNES_TEST_CASES)
 run_tests("brackets", BRACKETS_TEST_CASES)
+run_tests("macros", MACRO_TEST_CASES)
