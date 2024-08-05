@@ -101,6 +101,8 @@ class Parser
           add_op(token.instruction)
         end
         add_output(Placeholder.new(token.label, token.ref_type, position: @position, token: token))
+      when Lexer::Macro
+        # no-op
       else
         raise "Unexpected token #{token.class.name.inspect}"
       end
