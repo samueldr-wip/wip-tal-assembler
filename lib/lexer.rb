@@ -149,7 +149,13 @@ class Lexer
     rune = RUNES[str[0]]
 
     unless rune.nil?
+      if str[0] == "@" && str.match("/")
+        # Implicitly set the parent label
+        tokens << Label.new(str.split("/").first, self)
+        Label.new(str, self)
+      else
         (RUNES[str[0]]).new(str, self)
+      end
     else
       if OPCODES_BY_MNEMONIC.include?(str)
         Opcode.new(str, self)
@@ -334,7 +340,7 @@ class Lexer
       @parent = nil
       super()
       @original_str = @str
-      if @str.match(/^@/)
+      if @str.match(/^@[^\/]+$/)
         @@current_label = self
       else
         error("Child label Rune used before a parent is defined.") if @@current_label.nil?
