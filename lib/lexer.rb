@@ -150,8 +150,11 @@ class Lexer
 
     unless rune.nil?
       if str[0] == "@" && str.match("/")
-        # Implicitly set the parent label
-        tokens << Label.new(str.split("/").first, self)
+        # Implicitly set the parent label if needed
+        label = str.split("/").first
+        unless labels.keys.include?(label.sub(/^@/, ""))
+          tokens << Label.new(label, self)
+        end
         Label.new(str, self)
       else
         (RUNES[str[0]]).new(str, self)
@@ -340,6 +343,11 @@ class Lexer
       @parent = nil
       super()
       @original_str = @str
+
+      if @str.match(/@.*\//)
+        @str = "&" + @str.split("/", 2).last
+      end
+
       if @str.match(/^@[^\/]+$/)
         @@current_label = self
       else
@@ -380,7 +388,7 @@ class Lexer
       @original_str ||= @str
       if @str.match(%r{^/})
         @parent = Label.current_label()
-        @str = [@parent.str[1..-1], @str[1..-1]].join("/")
+        @str = [@parent.label, @str[1..-1]].join("/")
       end
 
       if @str.match(/^&/)
