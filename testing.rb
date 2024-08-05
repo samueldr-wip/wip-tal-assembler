@@ -116,6 +116,15 @@ RUNES_TEST_CASES = [
     source: "@parent $child",
     expected: [].pack("")
   },
+  {
+    name: "Label rune (@parent/child).",
+    # equivalent: "@test/z $2 @test/x $2 test/x",
+    source: "@test/z &x test/x",
+    expected: [
+      OPCODES_BY_MNEMONIC["JSI"],
+      0xfffd,
+    ].pack("CS>")
+  },
   # Immediate runes
   {
     name: "JMI",
