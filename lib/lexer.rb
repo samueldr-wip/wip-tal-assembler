@@ -14,6 +14,7 @@ class Lexer
   attr_reader :column
   attr_reader :path
   attr_reader :labels
+  attr_reader :macros
 
   def self.from_file(path)
     new(File.open(path)).tap do |inst|
@@ -34,6 +35,7 @@ class Lexer
     @src = src
     @tokens = []
     @labels = {}
+    @macros = {}
     @line = 1
     @column = 0
     @brackets_stack = []
@@ -106,8 +108,18 @@ class Lexer
           need_restart ||= self_restart
           result
         end.flatten
-      break unless need_restart
 
+      @tokens =
+        tokens.map do |token|
+          if token.is_a? LabelRef
+            result, need_restart = token.unwrap_macro!()
+            result
+          else
+            token
+          end
+        end.flatten
+
+      break unless need_restart
     end
   end
 
@@ -359,6 +371,14 @@ class Lexer
       end
     end
 
+    def unwrap_macro!()
+      if @lexer.macros[label]
+        return @lexer.macros[label].copy_tokens(), true
+      else
+        return self, false
+      end
+    end
+
     def ref_type()
       :relative_16
     end
@@ -438,8 +458,48 @@ class Lexer
     end
   end
   class Macro < Token
+    attr_reader :macro
+
+    def parse!()
+      super()
+      @original_str = @str
+      @str = @original_str[1..-1]
+      @lexer.macros[@str] = self
+      @macro = nil
+    end
+
     def preprocess!()
-      raise "TODO: implement Macro#preprocess!"
+      if @macro.nil?
+        # Find the following LambdaBracketOpen
+        tokens = @lexer.tokens
+        pos = tokens.index(self)
+        opening_token_pos = tokens[(pos+1)..-1].index { |token| !token.transparent? } + pos + 1
+        opening_token = tokens[opening_token_pos]
+        unless opening_token.is_a? LambdaBracketOpen
+          raise AssemblerException.new("Next token is not a #{LambdaBracketOpen.name.inspect} for macro #{self.str.inspect}; found #{opening_token.class.name.inspect}")
+        end
+        closing_token_pos = tokens[(opening_token_pos+1)..-1].index { |token| token == opening_token.associate } + opening_token_pos + 1
+
+        # Remove from the lexed tokens
+        @macro = tokens.slice!(opening_token_pos..closing_token_pos)
+        @macro = @macro[1..-2]
+
+        return self, true
+      end
+      return super()
+    end
+
+    def ==(other)
+      if other.is_a?(self.class)
+        [
+          other.macro == self.macro,
+          super(other),
+        ].all?()
+      end
+    end
+
+    def copy_tokens()
+      @macro.map(&:dup)
     end
   end
 
