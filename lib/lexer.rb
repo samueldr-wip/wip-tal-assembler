@@ -151,13 +151,15 @@ class Lexer
     unless rune.nil?
         (RUNES[str[0]]).new(str, self)
     else
-      case str
-      when /^[A-Z]{3}2?k?r?/
+      if OPCODES_BY_MNEMONIC.include?(str)
         Opcode.new(str, self)
-      when /^[a-f0-9]+$/
-        ByteOrShort.new(str, self)
       else
-        LabelRef.new(str, self)
+        case str
+        when /^[a-f0-9]+$/
+          ByteOrShort.new(str, self)
+        else
+          LabelRef.new(str, self)
+        end
       end
     end
   end
