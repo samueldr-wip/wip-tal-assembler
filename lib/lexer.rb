@@ -205,6 +205,13 @@ class Lexer
     def preprocess!()
       return self, false
     end
+
+    def ==(other)
+      [
+        other.str == self.str,
+        other.position == self.position,
+      ].all?
+    end
   end
 
   class TransparentToken < BasicToken
