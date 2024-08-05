@@ -145,8 +145,7 @@ class Parser
       if value.length > 0
         newpos = value.position - 0x100
         if newpos < io.tell
-          $stderr.puts "Unexpected rewind from #{io.tell} to #{newpos}"
-          exit 1
+          raise AssemblerException.new("Unexpected rewind for writing from #{io.tell} to #{newpos}")
         end
         io.seek(newpos)
         io.write(value.emit)
