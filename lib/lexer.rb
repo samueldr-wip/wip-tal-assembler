@@ -1,5 +1,6 @@
 require "json"
 require "stringio"
+require_relative "opcodes"
 require_relative "error"
 
 class Lexer
