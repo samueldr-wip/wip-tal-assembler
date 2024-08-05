@@ -102,10 +102,8 @@ class Lexer
 
       @tokens =
         tokens.map do |token|
-          original_token = token
-          token = token.dup
-          result = token.preprocess!()
-          need_restart ||= result != token
+          result, self_restart = token.preprocess!()
+          need_restart ||= self_restart
           result
         end.flatten
       break unless need_restart
@@ -205,7 +203,7 @@ class Lexer
 
     # By default, a no-op.
     def preprocess!()
-      self
+      return self, false
     end
   end
 
@@ -429,7 +427,7 @@ class Lexer
       lexer = Lexer.from_file(path)
       lexer.parse!
       lexer.preprocess!
-      lexer.tokens
+      return lexer.tokens, true
     end
   end
   class Macro < Token
