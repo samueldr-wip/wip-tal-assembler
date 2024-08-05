@@ -248,6 +248,16 @@ MACRO_TEST_CASES = [
       OPCODES_BY_MNEMONIC["POP2k"],
     ].pack("CS>C"),
   },
+  {
+    name: "Macro in a macro with curlies, with a lambda, both called.",
+    source: "%actual-macro { POP2k } %macro { { actual-macro } } macro actual-macro",
+    expected: [
+      OPCODES_BY_MNEMONIC["JSI"],
+      0x0001,
+      OPCODES_BY_MNEMONIC["POP2k"],
+      OPCODES_BY_MNEMONIC["POP2k"],
+    ].pack("CS>CC"),
+  },
 ]
 
 # TODO: test error cases too
