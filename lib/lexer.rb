@@ -112,7 +112,8 @@ class Lexer
       @tokens =
         tokens.map do |token|
           if token.is_a? LabelRef
-            result, need_restart = token.unwrap_macro!()
+            result, self_restart = token.unwrap_macro!()
+            need_restart ||= self_restart
             result
           else
             token
