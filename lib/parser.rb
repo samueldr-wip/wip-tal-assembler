@@ -208,7 +208,7 @@ class Parser
 
     def set_ref(address)
       if address.nil?
-        raise AssemblerException.new("Reference not found for label #{self.token.label.inspect}")
+        raise AssemblerException.new("Reference not found for label reference #{self.token.label.inspect} @ #{self.token.position}")
       end
       @value =
         if [:relative_8, :relative_16].include?(type)

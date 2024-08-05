@@ -210,11 +210,10 @@ class Lexer
     end
 
     def error(str)
-      $stderr.puts [
+      raise AssemblerException.new([
         "Error: #{str} in #{path}@#{position}",
         if @lexer.nil? then nil else "(#{@lexer.position})" end,
-      ].compact.join(" ")
-      exit 2
+      ].compact.join(" "))
     end
 
     def inspect()
