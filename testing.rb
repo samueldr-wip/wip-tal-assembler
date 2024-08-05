@@ -291,6 +291,8 @@ def run_tests(suite, tests)
   end
 
   grouped = results.group_by { |result| result[:result] }
+  grouped[true] ||= []
+  grouped[false] ||= []
 
   puts "   Success: #{grouped[true].length}/#{results.length}"
 end
