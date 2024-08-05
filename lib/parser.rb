@@ -60,6 +60,20 @@ OPCODES_BY_MNEMONIC = OPCODES_BY_BYTE.map do |k, v|
   [v, k]
 end.sort.to_h
 
+[2, 3].each do |i|
+  ["2", "k", "r"].permutation(i) do |list|
+    suffix = list.join("")
+    OPCODES_BY_BYTE.each do |value, mnemonic|
+      OPCODES_BY_MNEMONIC[mnemonic + suffix] = [
+        value,
+        if list.include?("2") then 0x20 else 0 end,
+        if list.include?("r") then 0x40 else 0 end,
+        if list.include?("k") then 0x80 else 0 end,
+      ].reduce(&:+)
+    end
+  end
+end
+
 class Parser
   attr_reader :tokens
   attr_reader :output
