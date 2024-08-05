@@ -351,6 +351,15 @@ class Lexer
       @lexer.labels[@str] = self
     end
 
+    def preprocess!()
+      # Ensure sublabels in includes get the proper parent labels.
+      if @original_str && @original_str.match(/^@/)
+        @@current_label = self
+      end
+
+      return super()
+    end
+
     def label()
       str
     end
