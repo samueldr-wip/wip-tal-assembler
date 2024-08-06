@@ -5,6 +5,7 @@ require_relative "error"
 
 class Lexer
   SPACES = [ " ", "\t", "\n" ]
+  HEX_NUMBER_REGEX    = /^[0-9a-f]+$/
   SPACES_REGEX        = /[ \t\n]/
   COMMENT_START_REGEX = /\(/
   COMMENT_END_REGEX   = /\)/
@@ -323,12 +324,16 @@ class Lexer
   end
   class PaddingAbsolute < Token
     def value()
-      str.sub("|", "").to_i(base=16)
+      v = str.sub("|", "")
+      error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
+      v.to_i(base=16)
     end
   end
   class PaddingRelative < Token
     def value()
-      str.sub("$", "").to_i(base=16)
+      v = str.sub("$", "")
+      error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
+      v.to_i(base=16)
     end
   end
 
