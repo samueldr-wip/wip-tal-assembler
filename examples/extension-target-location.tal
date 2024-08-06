@@ -1,0 +1,39 @@
+%DEBUG { #ab .System/debug DEO }
+%NL { 0a }
+%SP { 20 }
+
+( Varvara )
+|00 @System &vector $2 &expansion $2 &wst $1 &rst $1 &metadata $2 &r $2 &g $2 &b $2 &debug $1 &state $1
+|00 &fill $1 &cpyl $1 &cpyr
+
+|0100
+@on-reset
+	( Prepare computed length for copy-cmd )
+	[ ;TEST_PROGRAM_LENGTH ;TEST_PROGRAM SUB2 ] [ ;copy-cmd/length ] STA2
+	( Copy code to target location )
+	[ ;copy-cmd .System/expansion DEO2 ]
+
+	;hello <pstr>   ( Print Hello! )
+	TEST_PROGRAM    ( Call into copied code )
+	;bye <pstr>     ( Print Bye! )
+
+	BRK
+	( data )
+	@copy-cmd [ -System/cpyl &length $2 0000 =TEST_PROGRAM_SRC 0000 =TEST_PROGRAM ]
+	@hello    "Hello! NL 00
+	@bye      "Bye! NL 00
+
+@<pstr> ( str* -: )
+	LDAk #18 DEO
+	INC2 & LDAk ?<pstr>
+	POP2 JMP2r
+
+@TEST_PROGRAM_SRC     ( This label points to the "data" location of the code )
+	|<8000            ( targeted to start at 0x8000; output at the current location )
+	@TEST_PROGRAM     ( This label points to 0x8000 )
+	;okay <pstr>      (  )
+	JMP2r
+	BRK
+	( data )
+	@okay ">>> SP "Re-targeted SP "code SP "worked! NL 00
+	@TEST_PROGRAM_LENGTH ( This label points to 0x8000 + how many bytes it took. )
