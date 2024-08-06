@@ -6,12 +6,18 @@ class Parser
   attr_reader :tokens
   attr_reader :output
   attr_reader :labels
+  attr_reader :output_position
 
   def initialize(tokens)
     @tokens = tokens.select { |token| !token.transparent? }
     @output = []
     @output_position = 0x0100
+    @target_offset = 0x0000
     @labels = {}
+  end
+
+  def target_position()
+    @output_position + @target_offset
   end
 
   def parse!()
@@ -20,11 +26,14 @@ class Parser
       case token
       when Lexer::PaddingRelative
         @output_position += token.value
+      when Lexer::TargetLocation
+        @target_offset = token.value - output_position
       when Lexer::PaddingAbsolute
         @output_position = token.value
+        @target_offset = 0x0000
       when Lexer::Label
         # The labels were checked for uniqueness when lexing...
-        labels[token.label] = @output_position
+        labels[token.label] = target_position
       when Lexer::Literal
         if token.value[:length] == 1
           add_op("LIT")
@@ -42,7 +51,7 @@ class Parser
         if token.instruction
           add_op(token.instruction)
         end
-        add_output(Placeholder.new(token.label, token.ref_type, output_position: @output_position, token: token))
+        add_output(Placeholder.new(token.label, token.ref_type, output_position: @output_position, target_position: target_position, token: token))
       when Lexer::Macro
         # no-op
       else
@@ -122,7 +131,7 @@ class Parser
     attr_reader :label
     attr_reader :type
 
-    def initialize(label, type, output_position:, token:)
+    def initialize(label, type, output_position:, target_position:, token:)
       @length =
         if [:relative_8, :zeropage].include?(type)
           1
@@ -130,6 +139,7 @@ class Parser
           2
         end
       super(nil, length: @length, output_position: output_position, token:)
+      @target_position = target_position
       @label = label
       @type = type
     end
@@ -140,7 +150,7 @@ class Parser
       end
       @value =
         if [:relative_8, :relative_16].include?(type)
-          address - output_position - 2
+          address - @target_position - 2
         else
           address
         end
