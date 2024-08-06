@@ -158,6 +158,9 @@ class Lexer
           tokens << Label.new(label, self)
         end
         Label.new(str, self)
+      elsif EXTENDED_RUNES.keys.any? { |patt| str.match?(patt) }
+        _, klass = EXTENDED_RUNES.find  { |patt, _| str.match?(patt) }
+        klass.new(str, self)
       else
         (RUNES[str[0]]).new(str, self)
       end
@@ -621,5 +624,18 @@ class Lexer
     # Pre-processor Runes
     %q{~} => Include,
     %q{%} => Macro,
+  }
+
+  class TargetLocation < Token
+    def value()
+      v = str.sub("|<", "")
+      error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
+      v.to_i(base=16)
+    end
+  end
+
+  # Extended runes
+  EXTENDED_RUNES = {
+    %r{^\|<} => TargetLocation,
   }
 end
