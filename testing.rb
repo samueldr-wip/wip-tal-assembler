@@ -113,7 +113,7 @@ RUNES_TEST_CASES = [
   },
   {
     name: "Label rune (child).",
-    source: "@parent $child",
+    source: "@parent &child",
     expected: [].pack("")
   },
   {
