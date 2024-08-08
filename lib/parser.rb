@@ -28,6 +28,26 @@ class Parser
         @output_position += token.value
       when Lexer::TargetStartLocation
         @target_offset = token.value - output_position
+      when Lexer::TargetEndLocation
+        start_index = tokens.index(token)
+        end_index = tokens[start_index+1..-1].index do |token|
+          [
+            Lexer::PaddingAbsolute,
+            Lexer::TargetEndLocation,
+            Lexer::TargetStartLocation,
+          ].any? do |klass|
+            token.is_a?(klass)
+          end
+        end
+        end_index =
+        if end_index
+          start_index + end_index
+        else
+          tokens.length
+        end
+        block_tokens = tokens[start_index..end_index]
+        block_length = block_tokens.reduce(0) { |prev, token| prev + token.output_length  }
+        @target_offset = token.value - block_length - output_position
       when Lexer::PaddingAbsolute
         @output_position = token.value
         @target_offset = 0x0000

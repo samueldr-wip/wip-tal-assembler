@@ -240,11 +240,19 @@ class Lexer
         other.position == self.position,
       ].all?
     end
+
+    def output_length()
+      raise "#output_length needs to be implemented for #{self.class.name}"
+    end
   end
 
   class TransparentToken < BasicToken
     def transparent?()
       true
+    end
+
+    def output_length()
+      0
     end
   end
 
@@ -305,8 +313,16 @@ class Lexer
         value: str.to_i(base=16),
       }
     end
+
+    def output_length()
+      value[:length]
+    end
   end
+
   class Opcode < Token
+    def output_length()
+      1
+    end
   end
 
   # Runes
@@ -319,10 +335,18 @@ class Lexer
     end
     # FIXME: desugar down to Opcode + ByteOrShort in preprocess?
     #        it probably should be...
+
+    def output_length()
+      value[:length]
+    end
   end
   class RawAscii < Token
     def value()
       str.sub(/^"/, "")
+    end
+
+    def output_length()
+      value.length
     end
   end
   class PaddingAbsolute < Token
@@ -331,12 +355,20 @@ class Lexer
       error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
       v.to_i(base=16)
     end
+
+    def output_length()
+      0
+    end
   end
   class PaddingRelative < Token
     def value()
       v = str.sub("$", "")
       error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
       v.to_i(base=16)
+    end
+
+    def output_length()
+      0
     end
   end
 
@@ -385,6 +417,10 @@ class Lexer
     def label()
       str
     end
+
+    def output_length()
+      0
+    end
   end
 
   class LabelRef < Token
@@ -424,6 +460,10 @@ class Lexer
     def label()
       str
     end
+
+    def output_length()
+      3
+    end
   end
 
   class ReferenceToken < LabelRef
@@ -448,37 +488,49 @@ class Lexer
       end
       super()
     end
+
+    def output_length()
+      raise "Unexpected call to #output_length on generic ReferenceToken"
+    end
   end
   class JCIReference < ReferenceToken
     def ref_type() :relative_16 end
     def instruction() "JCI" end
+    def output_length() 3 end
   end
   class JMIReference < ReferenceToken
     def ref_type() :relative_16 end
     def instruction() "JMI" end
+    def output_length() 3 end
   end
 
   class LiteralAddressRelative < ReferenceToken
     def ref_type() :relative_8 end
     def instruction() "LIT" end
+    def output_length() 2 end
   end
   class LiteralAddressZeroPage < ReferenceToken
     def ref_type() :zeropage end
     def instruction() "LIT" end
+    def output_length() 2 end
   end
   class LiteralAddressAbsolute < ReferenceToken
     def ref_type() :absolute end
     def instruction() "LIT2" end
+    def output_length() 3 end
   end
 
   class RawAddressRelative < ReferenceToken
     def ref_type() :relative_8 end
+    def output_length() 1 end
   end
   class RawAddressZeroPage < ReferenceToken
     def ref_type() :zeropage end
+    def output_length() 1 end
   end
   class RawAddressAbsolute < ReferenceToken
     def ref_type() :absolute end
+    def output_length() 2 end
   end
 
   class Include < Token
@@ -489,6 +541,10 @@ class Lexer
       lexer.parse!
       lexer.preprocess!
       return lexer.tokens, true
+    end
+
+    def output_length()
+      0
     end
   end
   class Macro < Token
@@ -534,6 +590,10 @@ class Lexer
 
     def copy_tokens()
       @macro.map(&:dup)
+    end
+
+    def output_length()
+      0
     end
   end
 
@@ -632,10 +692,27 @@ class Lexer
       error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
       v.to_i(base=16)
     end
+
+    def output_length()
+      0
+    end
+  end
+
+  class TargetEndLocation < Token
+    def value()
+      v = str.sub("|>", "")
+      error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
+      v.to_i(base=16)
+    end
+
+    def output_length()
+      0
+    end
   end
 
   # Extended runes
   EXTENDED_RUNES = {
     %r{^\|<} => TargetStartLocation,
+    %r{^\|>} => TargetEndLocation,
   }
 end
