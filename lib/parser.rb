@@ -26,7 +26,7 @@ class Parser
       case token
       when Lexer::PaddingRelative
         @output_position += token.value
-      when Lexer::TargetLocation
+      when Lexer::TargetStartLocation
         @target_offset = token.value - output_position
       when Lexer::PaddingAbsolute
         @output_position = token.value
