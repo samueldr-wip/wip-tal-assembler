@@ -626,7 +626,7 @@ class Lexer
     %q{%} => Macro,
   }
 
-  class TargetLocation < Token
+  class TargetStartLocation < Token
     def value()
       v = str.sub("|<", "")
       error "Value for #{self.class.name} is not a valid offset (got: #{v.inspect})" unless v.match(HEX_NUMBER_REGEX)
@@ -636,6 +636,6 @@ class Lexer
 
   # Extended runes
   EXTENDED_RUNES = {
-    %r{^\|<} => TargetLocation,
+    %r{^\|<} => TargetStartLocation,
   }
 end
