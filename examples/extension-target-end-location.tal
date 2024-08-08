@@ -33,15 +33,15 @@
 	POP2 JMP2r
 
 @TEST_PROGRAM_SRC     ( This label points to the "data" location of the code )
-	|>ffff            ( targeted to start at 0x8000; output at the current location )
-	@TEST_PROGRAM     ( This label points to 0x8000 )
+	|>ffff            ( targeted for block to end at 0xffff; output at the current location )
+	@TEST_PROGRAM     ( This label points to 0xffff - block length )
 	;&okay <pstr>     (  )
 	show-address
 	JMP2r
 	BRK
 	( data )
 	&okay ">>> SP "Re-targeted SP "code SP "worked! SP "(PC SP "should SP "be SP "at SP "0xffc6) NL 00
-	&_end             ( This label points to 0xffff )
+	&_end             ( This label points to 0xffff, since it is the last before an absolute padding rune. )
 
 ( This is not really representative of how this feature is intended to be used... )
 |0200
