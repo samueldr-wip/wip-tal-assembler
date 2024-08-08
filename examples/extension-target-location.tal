@@ -9,12 +9,13 @@
 |0100
 @on-reset
 	( Prepare computed length for copy-cmd )
-	[ ;TEST_PROGRAM_LENGTH ;TEST_PROGRAM SUB2 ] [ ;copy-cmd/length ] STA2
+	[ ;TEST_PROGRAM/_end ;TEST_PROGRAM SUB2 ] [ ;copy-cmd/length ] STA2
 	( Copy code to target location )
 	[ ;copy-cmd .System/expansion DEO2 ]
 
 	;hello <pstr>   ( Print Hello! )
 	TEST_PROGRAM    ( Call into copied code )
+	other-routine   ( Just to test a bit more )
 	;bye <pstr>     ( Print Bye! )
 
 	BRK
@@ -31,9 +32,16 @@
 @TEST_PROGRAM_SRC     ( This label points to the "data" location of the code )
 	|<8000            ( targeted to start at 0x8000; output at the current location )
 	@TEST_PROGRAM     ( This label points to 0x8000 )
-	;okay <pstr>      (  )
+	;&okay <pstr>     (  )
 	JMP2r
 	BRK
 	( data )
-	@okay ">>> SP "Re-targeted SP "code SP "worked! NL 00
-	@TEST_PROGRAM_LENGTH ( This label points to 0x8000 + how many bytes it took. )
+	&okay ">>> SP "Re-targeted SP "code SP "worked! NL 00
+	&_end             ( This label points to 0x8000 + how many bytes it took. )
+
+( This is not really representative of how this feature is intended to be used... )
+|0180
+@other-routine
+	;&okay <pstr>
+	JMP2r
+	&okay "Reached SP "the SP "other SP "routine... NL 00
