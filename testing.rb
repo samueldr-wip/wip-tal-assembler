@@ -287,6 +287,24 @@ TARGETING_TEST_CASES = [
       0xfffd,
     ].pack("CS>"),
   },
+  {
+    name: "Re-targeting end address; absolute address is correct.",
+    source: "|>ffff @start BRK BRK =&end &end",
+    expected: [
+      0, 0,
+      0xffff,
+    ].pack("CCS>"),
+  },
+  {
+    name: "Re-targeting end address; relative address is correct.",
+    source: "|>ffff @start start/end BRK BRK &end",
+    expected: [
+      OPCODES_BY_MNEMONIC["JSI"],
+      0x2,
+      OPCODES_BY_MNEMONIC["BRK"],
+      OPCODES_BY_MNEMONIC["BRK"],
+    ].pack("CS>CC"),
+  },
 ]
 
 # TODO: test error cases too
