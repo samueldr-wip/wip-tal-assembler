@@ -269,6 +269,26 @@ MACRO_TEST_CASES = [
   },
 ]
 
+TARGETING_TEST_CASES = [
+  {
+    name: "Re-targeting start address; absolute address is correct.",
+    source: "|<8000 @l ;l JMP2",
+    expected: [
+      OPCODES_BY_MNEMONIC["LIT2"],
+      0x8000,
+      OPCODES_BY_MNEMONIC["JMP2"],
+    ].pack("CS>C"),
+  },
+  {
+    name: "Re-targeting start address; relative address is correct.",
+    source: "|<8000 @l l",
+    expected: [
+      OPCODES_BY_MNEMONIC["JSI"],
+      0xfffd,
+    ].pack("CS>"),
+  },
+]
+
 # TODO: test error cases too
 # |100 ,testing |300 @testing #1234   →   `Relative reference too far`
 
@@ -330,3 +350,4 @@ run_tests("simple", SIMPLE_OUTPUT_TEST_CASES)
 run_tests("runes", RUNES_TEST_CASES)
 run_tests("brackets", BRACKETS_TEST_CASES)
 run_tests("macros", MACRO_TEST_CASES)
+run_tests("targeting", TARGETING_TEST_CASES)
